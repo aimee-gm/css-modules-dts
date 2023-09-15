@@ -6,8 +6,10 @@ export async function getDtsContents(filename: string) {
   const classNames = new Set();
 
   const ast = parseCss(css, { filename });
+
   walk(ast, (node) => {
-    if (node.type === `ClassSelector`) {
+    // ID Selectors are valid local names in CSS modules
+    if (node.type === "ClassSelector" || node.type === "IdSelector") {
       classNames.add(node.name);
     }
   });

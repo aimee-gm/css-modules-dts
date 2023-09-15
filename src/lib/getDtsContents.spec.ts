@@ -78,4 +78,21 @@ export default styles;
 `.trim(),
     );
   });
+
+  it.only("handles ID selectors", async () => {
+    mockFs({
+      "src/styles.css": "#foo { color: red; }",
+    });
+
+    const dts = await getDtsContents("src/styles.css");
+
+    expect(dts).toEqual(
+      `
+declare const styles: {
+  readonly "foo": string;
+};
+export default styles;
+`.trim(),
+    );
+  });
 });
