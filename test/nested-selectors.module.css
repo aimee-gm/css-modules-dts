@@ -1,0 +1,8 @@
+.foo {
+  &.bar {
+    color: red;
+  }
+  & div .baz {
+    color: blue;
+  }
+}

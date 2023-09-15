@@ -17,7 +17,7 @@ export async function getDtsContents(filename: string) {
   const ts = `declare const styles: {\n${Array.from(classNames)
     .sort()
     .map((name) => `  readonly "${name}": string;`)
-    .join(`\n`)}\n};\nexport default styles;`;
+    .join(`\n`)}\n};\nexport default styles;\n`;
 
   return ts;
 }

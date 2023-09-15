@@ -1,98 +1,87 @@
-import mockFs from "mock-fs";
 import { getDtsContents } from "./getDtsContents";
+import { join } from "node:path";
 
-afterEach(() => {
-  mockFs.restore();
-});
+const __dirname = new URL(".", import.meta.url).pathname;
+
+const testFilePath = (filename: string) =>
+  join(__dirname, "../../test", `${filename}.module.css`);
 
 describe("getDtsContents", () => {
   it("converts CSS to a declaration file", async () => {
-    mockFs({
-      "src/styles.css": ".foo { color: red; }",
-    });
-    const dts = await getDtsContents("src/styles.css");
+    const dts = await getDtsContents(testFilePath("css-to-dts"));
 
     expect(dts).toEqual(
-      `
-declare const styles: {
+      `declare const styles: {
   readonly "foo": string;
 };
 export default styles;
-`.trim(),
+`,
     );
   });
 
   it("generates declarations for elements with class selectors", async () => {
-    mockFs({
-      "src/styles.css": "div.foo { color: red; }\n.bar { color: blue; }",
-    });
-
-    const dts = await getDtsContents("src/styles.css");
+    const dts = await getDtsContents(testFilePath("class-selectors"));
     expect(dts).toEqual(
-      `
-declare const styles: {
+      `declare const styles: {
   readonly "bar": string;
   readonly "foo": string;
 };
 export default styles;
-`.trim(),
+`,
     );
   });
 
   it("generates declarations for multiple class selectors", async () => {
-    mockFs({
-      "src/styles.css":
-        "div.foo.bar { color: red; }\n#fib.baz { color: blue; }",
-    });
-
-    const dts = await getDtsContents("src/styles.css");
+    const dts = await getDtsContents(testFilePath("multiple-selectors"));
 
     expect(dts).toEqual(
-      `
-declare const styles: {
+      `declare const styles: {
   readonly "bar": string;
   readonly "baz": string;
+  readonly "fib": string;
   readonly "foo": string;
 };
 export default styles;
-`.trim(),
+`,
     );
   });
 
   it("generates declarations for nested class selectors", async () => {
-    mockFs({
-      "src/styles.css":
-        ".foo { &.bar { color: red; } & div .baz { color: blue; } }",
-    });
-
-    const dts = await getDtsContents("src/styles.css");
+    const dts = await getDtsContents(testFilePath("nested-selectors"));
 
     expect(dts).toEqual(
-      `
-declare const styles: {
+      `declare const styles: {
   readonly "bar": string;
   readonly "baz": string;
   readonly "foo": string;
 };
 export default styles;
-`.trim(),
+`,
     );
   });
 
-  it.only("handles ID selectors", async () => {
-    mockFs({
-      "src/styles.css": "#foo { color: red; }",
-    });
-
-    const dts = await getDtsContents("src/styles.css");
+  it("handles ID selectors", async () => {
+    const dts = await getDtsContents(testFilePath("id-selectors"));
 
     expect(dts).toEqual(
-      `
-declare const styles: {
+      `declare const styles: {
   readonly "foo": string;
 };
 export default styles;
-`.trim(),
+`,
+    );
+  });
+
+  it("handles global selectors", async () => {
+    const dts = await getDtsContents(testFilePath("global-selectors"));
+
+    expect(dts).toEqual(
+      `declare const styles: {
+  readonly "bar": string;
+  readonly "baz": string;
+};
+export default styles;
+`,
     );
   });
 });
